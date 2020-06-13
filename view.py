@@ -13,7 +13,7 @@ class Ui_Dialog(object):
         Dialog.setObjectName("Dialog")
         Dialog.resize(1598, 910)
         self.graphicsView = QtWidgets.QGraphicsView(Dialog)
-        self.graphicsView.setGeometry(QtCore.QRect(20, 30, 1381, 851))
+        self.graphicsView.setGeometry(QtCore.QRect(20, 30, 1375, 825))
         self.graphicsView.setObjectName("graphicsView")
         self.layoutWidget = QtWidgets.QWidget(Dialog)
         self.layoutWidget.setGeometry(QtCore.QRect(1430, 60, 131, 151))
