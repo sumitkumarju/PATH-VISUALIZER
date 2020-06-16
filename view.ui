@@ -27,89 +27,6 @@
    <property name="geometry">
     <rect>
      <x>1430</x>
-     <y>60</y>
-     <width>131</width>
-     <height>151</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QRadioButton" name="startnodeinput">
-      <property name="text">
-       <string>Start Node</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="endnodeinput">
-      <property name="text">
-       <string>End Node</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="radioButton_3">
-      <property name="text">
-       <string>Bar Node</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="layoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>1430</x>
-     <y>280</y>
-     <width>141</width>
-     <height>181</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <item>
-     <widget class="QLabel" name="algorithms">
-      <property name="text">
-       <string>ALGORITHMS</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="bfsinput">
-      <property name="text">
-       <string>BFS</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="dfsinput">
-      <property name="text">
-       <string>DFS</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="dijkstrasinput">
-      <property name="text">
-       <string>DIJKSTRAS</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QRadioButton" name="bellinput">
-      <property name="text">
-       <string>BELLMAN FORD</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="layoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>1430</x>
      <y>530</y>
      <width>141</width>
      <height>101</height>
@@ -127,6 +44,92 @@
      <widget class="QPushButton" name="clear">
       <property name="text">
        <string>CLEAR</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>1430</x>
+     <y>60</y>
+     <width>141</width>
+     <height>151</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QPushButton" name="startnode">
+      <property name="text">
+       <string>Start Node</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="endnode">
+      <property name="text">
+       <string>End Node</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="bars">
+      <property name="text">
+       <string>Bars</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>1430</x>
+     <y>280</y>
+     <width>141</width>
+     <height>201</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <property name="spacing">
+     <number>17</number>
+    </property>
+    <item>
+     <widget class="QLabel" name="algo">
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <property name="text">
+       <string>       ALGORITHMS</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="bfs">
+      <property name="text">
+       <string>BFS</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="dfs">
+      <property name="text">
+       <string>DFS</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="dijkstra">
+      <property name="text">
+       <string>Dijkstra</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="floyd">
+      <property name="text">
+       <string>Floyd Warshall</string>
       </property>
      </widget>
     </item>
