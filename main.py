@@ -7,19 +7,21 @@ from PyQt5.QtGui import QPen, QBrush, QColor
 from PyQt5.QtCore import QRectF
 from PyQt5.Qt import Qt, QTimer
 from PyQt5 import QtCore
-from view import Ui_Dialog
+from collections import deque
 
+from view import Ui_Dialog
 
 sys.setrecursionlimit(10**6)
 
-from collections import deque
+
 ROW = 33
 COL = 55
 
 class Point:
-    def __init__(self,x: int, y: int):
+    def __init__(self,x,y,pt=None):
         self.x = x
         self.y = y
+        self.parent=pt
 
 class queueNode:
     def __init__(self,pt: Point, dist: int):
@@ -28,6 +30,7 @@ class queueNode:
 
 def isValid(row: int, col: int):
     return (row >= 0) and (row < ROW) and (col >= 0) and (col < COL)
+
 
 
 rowNum = [-1, 0, 0, 1]
@@ -42,71 +45,51 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.setupUi(self)
         self.createGraphicView()
         self.matrix= [ [1 for i in range(55)] for j in range(33)]
-        self.visited= [ [False for i in range(55)] for j in range(33)]
-        #print((self.matrix))
+        self.points= [ [Point(j,i) for i in range(55)] for j in range(33)]
         self.srt=False
         self.end=False
         self.startnode={}
         self.endnode={}
-        self.clear.pressed.connect(self.createGraphicView)
+        self.clear.pressed.connect(self.clearmaze)
         self.startnodeinput.pressed.connect(self.startselected)
         self.endnodeinput.pressed.connect(self.endselected)
         self.bfsinput.pressed.connect(self.bfs)
         self.dfsinput.pressed.connect(self.dfs)
 
 
-    def print(self):
-        print(self.startnode)
-        print(self.endnode)
-        print(self.matrix)
-        brush = QBrush()
-        brush.setColor(Qt.white)
-        brush.setStyle(Qt.SolidPattern)
-        borderColor = Qt.black
-        fillColor = Qt.red
-        for x in range(800,1300,25):
-            for y in range(300,700,25):
-                self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
-                QApplication.processEvents()
-                time.sleep(0.1)
 
-        #self.update()
+
+    def clearmaze(self):
+        self.scene.clear()
+        self.matrix= [ [1 for i in range(55)] for j in range(33)]
+        self.points= [ [Point(j,i) for i in range(55)] for j in range(33)]
+        for x in range(0,1376,25):
+            self.scene.addLine(x,0,x,825, QPen(Qt.black))
+        for y in range(0,826,25):
+            self.scene.addLine(0,y,1375,y, QPen(Qt.black))
 
     def createGraphicView(self):
         self.scene  =QGraphicsScene()
-        #self.greenBrush = QBrush(Qt.green)
-        #self.grayBrush = QBrush(Qt.gray)
+
 
         self.pen = QPen(Qt.red)
-
-
-        #self.shapes()
-                  # Grid pattern.
-        # self.scene.setBackgroundBrush(brush)
-
-
-        # rect = QRectF(0.0, 0.0, 638, 378)         # Screen res or whatever.
-
-        # self.scene.addRect(rect,borderColor,fillColor)  # Rectangle for color.Qt.green
-        # self.scene.addRect(rect,borderColor,brush)
 
         self.graphicsView.setHorizontalScrollBarPolicy ( Qt.ScrollBarAlwaysOff )
         self.graphicsView.setVerticalScrollBarPolicy ( Qt.ScrollBarAlwaysOff )
 
-        self.scene.setBackgroundBrush(Qt.black)
+        self.scene.setBackgroundBrush(Qt.white)
 
         for x in range(0,1376,25):
-            self.scene.addLine(x,0,x,825, QPen(Qt.red))
+            self.scene.addLine(x,0,x,825, QPen(Qt.black))
 
 
         for y in range(0,826,25):
-            self.scene.addLine(0,y,1375,y, QPen(Qt.white))
+            self.scene.addLine(0,y,1375,y, QPen(Qt.black))
 
 
 
         self.graphicsView.setScene(self.scene)
 
-        #self.graphicsView.setMouseTracking(True)
         self.graphicsView.viewport().installEventFilter(self)
 
 
@@ -128,23 +111,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         stack.append(src)
         first = True
         while (len(stack)):
-            # Pop a vertex from stack and print it
+
             pt = stack[-1]
             stack.pop()
 
-            # Stack may contain same vertex twice. So
-            # we need to print the popped item only
-            # if it is not visited.
             if (not visited[pt.x][pt.y]):
 
                 visited[pt.x][pt.y] = True
 
             if pt.x == dest.x and pt.y == dest.y:
-                return 0
+                return 1
 
             if first == False:
-             self.paint(pt.y*25,pt.x*25,Qt.blue)
-             self.paint(pt.y*25,pt.x*25,Qt.white)
+             self.paint(pt.y*25,pt.x*25,Qt.blue,0.001)
+             self.paint(pt.y*25,pt.x*25,Qt.cyan)
 
             first=False
 
@@ -152,7 +132,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                 row = pt.x + rowNum[i]
                 col = pt.y + colNum[i]
                 if (isValid(row,col) and self.matrix[row][col] == 1 and not visited[row][col]):
+                    self.points[row][col].parent = pt
                     stack.append(Point(row,col))
+        return -1
 
     def dfs(self):
         x=int(self.startnode['y']/25)
@@ -165,9 +147,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         dist = self.dfs_util(source,dest,visited)
 
         if dist!=-1:
-            print("Shortest Path is",dist)
+            print("Path exists")
+            t= self.points[x_][y_].parent
+            while t!=source:
+                self.paint(t.y*25,t.x*25,Qt.darkCyan)
+                t=self.points[t.x][t.y].parent
         else:
-            print("Shortest Path doesn't exist")
+            print("Path doesn't exist")
 
 
     def bfs_util(self, src: Point, dest: Point):
@@ -196,7 +182,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                 return curr.dist
 
             if first == False:
-             self.paint(pt.y*25,pt.x*25,Qt.white)
+             self.paint(pt.y*25,pt.x*25,Qt.cyan)
 
             first=False
 
@@ -205,7 +191,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                 col = pt.y + colNum[i]
                 if (isValid(row,col) and self.matrix[row][col] == 1 and not visited[row][col]):
                     visited[row][col] = True
-                    Adjcell = queueNode(Point(row,col),curr.dist+1)
+                    print(row*55+col)
+                    self.points[row][col].parent = pt
+                    Adjcell = queueNode(Point(row,col,pt),curr.dist+1)
                     if row == dest.x and col == dest.y:
                        return curr.dist+1
 
@@ -226,14 +214,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
         dist = self.bfs_util(source,dest)
 
+
         if dist!=-1:
             print("Shortest Path is",dist)
+            t= self.points[x_][y_].parent
+            while t!=source:
+                self.paint(t.y*25,t.x*25,Qt.darkCyan,0.1)
+                t=self.points[t.x][t.y].parent
         else:
             print("Shortest Path doesn't exist")
 
 
-    def paint(self,x,y,color):
-        #print(x,y)
+
+    def paint(self,x,y,color,tym=0.01):
         brush = QBrush()
         brush.setColor(color)
         brush.setStyle(Qt.SolidPattern)
@@ -241,14 +234,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         fillColor = Qt.red
         self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
         QApplication.processEvents()
-        time.sleep(0.01)
+        time.sleep(tym)
 
 
     def eventFilter(self, source, event):
         if (event.type() == QtCore.QEvent.MouseMove and source is self.graphicsView.viewport()):
             pos = event.pos()
             brush = QBrush()
-            brush.setColor(Qt.yellow)
+            brush.setColor(Qt.gray)
             brush.setStyle(Qt.SolidPattern)
             borderColor = Qt.black
             fillColor = Qt.red
@@ -266,21 +259,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             fillColor = Qt.red
             x=(pos.x()-pos.x()%25)
             y=(pos.y()-pos.y()%25)
-            if self.srt:
-                self.startnode={'x':x,'y':y}
-                self.matrix[int(y/25)][int(x/25)]=1
-                brush.setColor(Qt.red)
-                self.srt=False
+            if x<=1350 and y<=800:
+                if self.srt:
+                    self.startnode={'x':x,'y':y}
+                    self.matrix[int(y/25)][int(x/25)]=1
+                    brush.setColor(Qt.red)
+                    self.srt=False
 
-            elif self.end:
-                self.endnode={'x':x,'y':y}
-                print(y/25,x/25)
-                self.matrix[int(y/25)][int(x/25)]=1
-                brush.setColor(Qt.green)
-                self.end=False
-            else:
-                brush.setColor(Qt.yellow)
-                self.matrix[int(y/25)][int(x/25)]=0
+                elif self.end:
+                    self.endnode={'x':x,'y':y}
+                    print(y/25,x/25)
+                    self.matrix[int(y/25)][int(x/25)]=1
+                    brush.setColor(Qt.green)
+                    self.end=False
+                else:
+                    brush.setColor(Qt.gray)
+                    self.matrix[int(y/25)][int(x/25)]=0
 
 
 
