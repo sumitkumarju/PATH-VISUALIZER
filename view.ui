@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1598</width>
+    <width>1607</width>
     <height>910</height>
    </rect>
   </property>
@@ -27,9 +27,9 @@
    <property name="geometry">
     <rect>
      <x>1430</x>
-     <y>530</y>
-     <width>141</width>
-     <height>101</height>
+     <y>720</y>
+     <width>151</width>
+     <height>71</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -40,96 +40,201 @@
       </property>
      </widget>
     </item>
-    <item>
-     <widget class="QPushButton" name="clear">
-      <property name="text">
-       <string>CLEAR</string>
-      </property>
-     </widget>
-    </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>1430</x>
-     <y>60</y>
-     <width>141</width>
-     <height>151</height>
+     <y>40</y>
+     <width>151</width>
+     <height>51</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>
-     <widget class="QPushButton" name="startnode">
+     <widget class="QLabel" name="node">
       <property name="text">
-       <string>Start Node</string>
+       <string>SELECT NODE</string>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::PlainText</enum>
+      </property>
+      <property name="scaledContents">
+       <bool>false</bool>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="endnode">
+     <widget class="QComboBox" name="nodeInput">
+      <item>
+       <property name="text">
+        <string> Start Node</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Target Node</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Bomb Node(Diffuse me first)</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Weight Node</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>1430</x>
+     <y>482</y>
+     <width>151</width>
+     <height>43</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_5">
+    <item>
+     <widget class="QLabel" name="speed">
       <property name="text">
-       <string>End Node</string>
+       <string>VISUALIZATION SPEED</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="bars">
-      <property name="text">
-       <string>Bars</string>
+     <widget class="QSlider" name="speedInput">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>1430</x>
-     <y>280</y>
-     <width>141</width>
-     <height>201</height>
+     <y>610</y>
+     <width>151</width>
+     <height>51</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
-    <property name="spacing">
-     <number>17</number>
-    </property>
+    <item>
+     <widget class="QLabel" name="currentnode">
+      <property name="text">
+       <string>CURRENT NODE</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="currentnodeInput"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>1430</x>
+     <y>140</y>
+     <width>151</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QLabel" name="algo">
       <property name="layoutDirection">
        <enum>Qt::LeftToRight</enum>
       </property>
       <property name="text">
-       <string>       ALGORITHMS</string>
+       <string> ALGORITHMS</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="bfs">
+     <widget class="QComboBox" name="algoInput">
+      <item>
+       <property name="text">
+        <string>Breadth First Search</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Depth First Search</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Dijkstra's Algorithm</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Floyd Warshall Algorithm</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>A* Algorithm</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string/>
+       </property>
+      </item>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>1430</x>
+     <y>280</y>
+     <width>151</width>
+     <height>121</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_6">
+    <item>
+     <widget class="QPushButton" name="clearb">
       <property name="text">
-       <string>BFS</string>
+       <string>CLEAR BOARD</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="dfs">
+     <widget class="QPushButton" name="clearw">
       <property name="text">
-       <string>DFS</string>
+       <string>CLEAR WEIGHT AND BLOCK</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="dijkstra">
+     <widget class="QPushButton" name="clearp">
       <property name="text">
-       <string>Dijkstra</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="floyd">
-      <property name="text">
-       <string>Floyd Warshall</string>
+       <string>CLEAR PATH</string>
       </property>
      </widget>
     </item>

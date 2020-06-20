@@ -46,19 +46,40 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.createGraphicView()
         self.matrix= [ [1 for i in range(55)] for j in range(33)]
         self.points= [ [Point(j,i) for i in range(55)] for j in range(33)]
-        self.srt=False
-        self.end=False
+
         self.startnode={}
         self.endnode={}
-        self.clear.pressed.connect(self.clearmaze)
-        self.startnodeinput.pressed.connect(self.startselected)
-        self.endnodeinput.pressed.connect(self.endselected)
-        self.bfsinput.pressed.connect(self.bfs)
-        self.dfsinput.pressed.connect(self.dfs)
+        self.clearb.pressed.connect(self.clearmaze)
+        self.visualize.pressed.connect(self.algorithm)
+        # node = self.nodeInput.itemText(self.nodeInput.currentIndex())
+        # print(node)
+        # if node == "Start Node":
+        #     self.color= Qt.red
+        # elif node == "Target Node":
+        #     self.color= Qt.green
+        # elif node == "Bomb Node":
+        #     self.color= Qt.magenta
+        # elif node == "Weighted Node":
+        #     self.color= Qt.black
+        # elif node == "Unweighted Node":
+        #     self.color= Qt.gray
+
+
+        # self.startnodeinput.pressed.connect(self.startselected)
+        # self.endnodeinput.pressed.connect(self.endselected)
+        # self.bfsinput.pressed.connect(self.bfs)
+        # self.dfsinput.pressed.connect(self.dfs)
 
 
 
 
+
+    def algorithm(self):
+        algo = self.algoInput.itemText(self.algoInput.currentIndex())
+        if algo == "Breadth First Search":
+            self.bfs()
+        elif algo == "Depth First Search":
+            self.dfs()
     def clearmaze(self):
         self.scene.clear()
         self.matrix= [ [1 for i in range(55)] for j in range(33)]
@@ -93,12 +114,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.graphicsView.viewport().installEventFilter(self)
 
 
-
-    def startselected(self):
-            self.srt=True
-
-    def endselected(self):
-            self.end=True
 
     def dfs_util(self, src: Point, dest: Point,visited):
 
@@ -227,6 +242,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
 
     def paint(self,x,y,color,tym=0.01):
+        self.currentnodeInput.setText(f"({x},{y})")
         brush = QBrush()
         brush.setColor(color)
         brush.setStyle(Qt.SolidPattern)
@@ -238,49 +254,55 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
 
     def eventFilter(self, source, event):
+        node = self.nodeInput.itemText(self.nodeInput.currentIndex())
+        color = ""
+        if node == "Start Node":
+            color= Qt.red
+        elif node == "Target Node":
+            color= Qt.green
+        elif node == "Bomb Node(Diffuse me first)":
+            color= Qt.magenta
+        elif node == "Weighted Node":
+            color= Qt.black
+        elif node == "Unweighted Node":
+            color= Qt.gray
         if (event.type() == QtCore.QEvent.MouseMove and source is self.graphicsView.viewport()):
             pos = event.pos()
             brush = QBrush()
-            brush.setColor(Qt.gray)
+            brush.setColor(color)
             brush.setStyle(Qt.SolidPattern)
             borderColor = Qt.black
             fillColor = Qt.red
             x=(pos.x()-pos.x()%25)
             y=(pos.y()-pos.y()%25)
             if x<=1350 and y<=800: #25 50
-                self.matrix[int(y/25)][int(x/25)]=0
-                self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
+                if color == Qt.gray:
+                 self.matrix[int(y/25)][int(x/25)]=0
+                 self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
+                elif color == Qt.black:
+                 self.matrix[int(y/25)][int(x/25)]=2
+                 self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
 
-        if (event.type() == QtCore.QEvent.MouseButtonPress and source is self.graphicsView.viewport() and event.button() == Qt.RightButton):
+        if (event.type() == QtCore.QEvent.MouseButtonPress and source is self.graphicsView.viewport()):
             pos = event.pos()
-            brush = QBrush()
+            brush = QBrush(color)
             brush.setStyle(Qt.SolidPattern)
             borderColor = Qt.black
             fillColor = Qt.red
             x=(pos.x()-pos.x()%25)
             y=(pos.y()-pos.y()%25)
             if x<=1350 and y<=800:
-                if self.srt:
+                if color == Qt.red:
                     self.startnode={'x':x,'y':y}
-                    self.matrix[int(y/25)][int(x/25)]=1
-                    brush.setColor(Qt.red)
-                    self.srt=False
-
-                elif self.end:
+                elif color == Qt.green:
                     self.endnode={'x':x,'y':y}
-                    print(y/25,x/25)
+                    #print(y/25,x/25)
                     self.matrix[int(y/25)][int(x/25)]=1
-                    brush.setColor(Qt.green)
-                    self.end=False
-                else:
-                    brush.setColor(Qt.gray)
+                elif color == Qt.gray:
                     self.matrix[int(y/25)][int(x/25)]=0
-
-
-
-
-
-            self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
+                elif color == Qt.black:
+                    self.matrix[int(y/25)][int(x/25)]=2
+                self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
 
         return QtWidgets.QWidget.eventFilter(self, source, event)
 
