@@ -2,9 +2,9 @@ import sys
 import time
 from PyQt5 import QtWidgets, uic
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsScene, QGraphicsView, QGraphicsItem
-from PyQt5.QtGui import QPen, QBrush, QColor
-from PyQt5.QtCore import QRectF
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from PyQt5.Qt import Qt, QTimer
 from PyQt5 import QtCore
 from collections import deque
@@ -49,8 +49,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
         self.startnode={}
         self.endnode={}
+        self.sfirst=True
+        self.efirst=True
+        self.wtlst=[]
+        self.blklst=[]
         self.clearb.pressed.connect(self.clearmaze)
+        self.clearp.pressed.connect(self.clearpath)
+        self.clearw.pressed.connect(self.clearweight)
         self.visualize.pressed.connect(self.algorithm)
+        self.speedInput.setMinimum(1)
+        self.speedInput.setMaximum(1000)
+        self.speedInput.setValue(500)
+        self.delay = 0.002
+        self.speedInput.setTickPosition(QSlider.TicksBelow)
+        self.speedInput.setTickInterval(200)
+        self.speedInput.valueChanged.connect(self.valuechange)
         # node = self.nodeInput.itemText(self.nodeInput.currentIndex())
         # print(node)
         # if node == "Start Node":
@@ -72,6 +85,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
 
 
+    def valuechange(self):
+      self.delay = 1/self.speedInput.value()
 
 
     def algorithm(self):
@@ -80,14 +95,70 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             self.bfs()
         elif algo == "Depth First Search":
             self.dfs()
+
+
     def clearmaze(self):
         self.scene.clear()
+        self.wtlst=[]
+        self.blklst=[]
+        self.sfirst=True
+        self.efirst=True
         self.matrix= [ [1 for i in range(55)] for j in range(33)]
         self.points= [ [Point(j,i) for i in range(55)] for j in range(33)]
         for x in range(0,1376,25):
             self.scene.addLine(x,0,x,825, QPen(Qt.black))
         for y in range(0,826,25):
             self.scene.addLine(0,y,1375,y, QPen(Qt.black))
+
+    def clearweight(self):
+        self.scene.clear()
+        self.wtlst=[]
+        self.blklst=[]
+        self.matrix= [ [1 for i in range(55)] for j in range(33)]
+        self.points= [ [Point(j,i) for i in range(55)] for j in range(33)]
+        for x in range(0,1376,25):
+            self.scene.addLine(x,0,x,825, QPen(Qt.black))
+        for y in range(0,826,25):
+            self.scene.addLine(0,y,1375,y, QPen(Qt.black))
+
+        brush = QBrush()
+        brush.setStyle(Qt.SolidPattern)
+        borderColor = Qt.black
+
+        brush.setColor(Qt.red)
+        self.scene.addRect(QRectF(self.startnode['x'],self.startnode['y'], 25, 25),borderColor,brush)
+
+        brush.setColor(Qt.green)
+        self.scene.addRect(QRectF(self.endnode['x'],self.endnode['y'], 25, 25),borderColor,brush)
+
+
+    def clearpath(self):
+        self.scene.clear()
+        for x in range(0,1376,25):
+            self.scene.addLine(x,0,x,825, QPen(Qt.black))
+        for y in range(0,826,25):
+            self.scene.addLine(0,y,1375,y, QPen(Qt.black))
+
+        brush = QBrush()
+        brush.setStyle(Qt.SolidPattern)
+        borderColor = Qt.black
+
+        brush.setColor(Qt.red)
+        self.scene.addRect(QRectF(self.startnode['x'],self.startnode['y'], 25, 25),borderColor,brush)
+
+        brush.setColor(Qt.green)
+        self.scene.addRect(QRectF(self.endnode['x'],self.endnode['y'], 25, 25),borderColor,brush)
+
+        brush.setColor(Qt.black)
+
+        for x,y in self.wtlst:
+            self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
+
+        brush.setColor(Qt.gray)
+
+        for x,y in self.blklst:
+            self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
+
 
     def createGraphicView(self):
         self.scene  =QGraphicsScene()
@@ -241,7 +312,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
 
 
-    def paint(self,x,y,color,tym=0.01):
+    def paint(self,x,y,color,tym = 0):
         self.currentnodeInput.setText(f"({x},{y})")
         brush = QBrush()
         brush.setColor(color)
@@ -250,6 +321,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         fillColor = Qt.red
         self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
         QApplication.processEvents()
+        if tym == 0:
+            tym=self.delay
         time.sleep(tym)
 
 
@@ -278,12 +351,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             if x<=1350 and y<=800: #25 50
                 if color == Qt.gray:
                  self.matrix[int(y/25)][int(x/25)]=0
+                 self.blklst.append((x,y))
                  self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
                 elif color == Qt.black:
                  self.matrix[int(y/25)][int(x/25)]=2
+                 self.wtlst.append((x,y))
                  self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
 
         if (event.type() == QtCore.QEvent.MouseButtonPress and source is self.graphicsView.viewport()):
+
             pos = event.pos()
             brush = QBrush(color)
             brush.setStyle(Qt.SolidPattern)
@@ -292,17 +368,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             x=(pos.x()-pos.x()%25)
             y=(pos.y()-pos.y()%25)
             if x<=1350 and y<=800:
-                if color == Qt.red:
+                if color == Qt.red and self.sfirst == True:
                     self.startnode={'x':x,'y':y}
-                elif color == Qt.green:
+                    self.sfirst = False
+                    self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
+                elif color == Qt.green and self.efirst == True:
                     self.endnode={'x':x,'y':y}
+                    self.efirst = False
+                    self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
                     #print(y/25,x/25)
                     self.matrix[int(y/25)][int(x/25)]=1
                 elif color == Qt.gray:
                     self.matrix[int(y/25)][int(x/25)]=0
+                    self.blklst.append((x,y))
+                    self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
                 elif color == Qt.black:
                     self.matrix[int(y/25)][int(x/25)]=2
-                self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
+                    self.wtlst.append((x,y))
+                    self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
 
         return QtWidgets.QWidget.eventFilter(self, source, event)
 

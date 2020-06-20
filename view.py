@@ -131,6 +131,6 @@ class Ui_Dialog(object):
         self.algoInput.setItemText(3, _translate("Dialog", "Floyd Warshall Algorithm"))
         self.algoInput.setItemText(4, _translate("Dialog", "A* Algorithm"))
         self.clearb.setText(_translate("Dialog", "CLEAR BOARD"))
-        self.clearw.setText(_translate("Dialog", "CLEAR WEIGHT AND BLOCK"))
+        self.clearw.setText(_translate("Dialog", "CLEAR WEIGHT/BLOCK"))
         self.clearp.setText(_translate("Dialog", "CLEAR PATH"))
 
