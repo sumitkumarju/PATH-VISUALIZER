@@ -8,8 +8,10 @@ from PyQt5.QtGui import *
 from PyQt5.Qt import Qt, QTimer
 from PyQt5 import QtCore
 from collections import deque
-
+import numpy as np
+import pickle
 from view import Ui_Dialog
+from queue import PriorityQueue
 
 sys.setrecursionlimit(10**6)
 
@@ -64,24 +66,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.speedInput.setTickPosition(QSlider.TicksBelow)
         self.speedInput.setTickInterval(200)
         self.speedInput.valueChanged.connect(self.valuechange)
-        # node = self.nodeInput.itemText(self.nodeInput.currentIndex())
-        # print(node)
-        # if node == "Start Node":
-        #     self.color= Qt.red
-        # elif node == "Target Node":
-        #     self.color= Qt.green
-        # elif node == "Bomb Node":
-        #     self.color= Qt.magenta
-        # elif node == "Weighted Node":
-        #     self.color= Qt.black
-        # elif node == "Unweighted Node":
-        #     self.color= Qt.gray
 
-
-        # self.startnodeinput.pressed.connect(self.startselected)
-        # self.endnodeinput.pressed.connect(self.endselected)
-        # self.bfsinput.pressed.connect(self.bfs)
-        # self.dfsinput.pressed.connect(self.dfs)
 
 
 
@@ -95,6 +80,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             self.bfs()
         elif algo == "Depth First Search":
             self.dfs()
+        elif algo == "A* Algorithm":
+            self.a_star();
 
 
     def clearmaze(self):
@@ -277,7 +264,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                 col = pt.y + colNum[i]
                 if (isValid(row,col) and self.matrix[row][col] == 1 and not visited[row][col]):
                     visited[row][col] = True
-                    print(row*55+col)
+                    #print(row*55+col)
                     self.points[row][col].parent = pt
                     Adjcell = queueNode(Point(row,col,pt),curr.dist+1)
                     if row == dest.x and col == dest.y:
@@ -309,6 +296,224 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                 t=self.points[t.x][t.y].parent
         else:
             print("Shortest Path doesn't exist")
+
+    def q_point(self):
+
+        R=[[-1 for i in range(55*33)] for j in range(33*55)]
+
+        x_=int(self.endnode['y']/25)
+        y_=int(self.endnode['x']/25)
+        dest = x_*55+y_
+
+        x=int(self.startnode['y']/25)
+        y=int(self.startnode['x']/25)
+        src = x*55+y
+
+        for i in range(55*33):
+            if(self.matrix[int(i/55)][i%55]):
+                if i-1>=(int)(i/55)*55 and (self.matrix[int((i-1)/55)][(i-1)%55]):
+                    R[i][i-1]=0
+
+                if (i+1)<((int)(i/55)+1)*55 and (self.matrix[int((i+1)/55)][(i+1)%55]):
+                    R[i][i+1]=0
+
+                if (i-55)>=0 and (self.matrix[int((i-55)/55)][(i-55)%55]):
+                    R[i][i-55]=0
+
+                if (i+55)<33*55 and (self.matrix[int((i+55)/55)][(i+55)%55]):
+                    R[i][i+55]=0
+                if i !=dest and i!=src:
+                    self.paint((i%55)*25,(int)(i/55)*25,Qt.blue)
+
+
+
+        print(dest)
+        #Assigning rewards
+        R[dest][dest]=100
+
+        i=dest
+        if i-1>=(int)(i/55)*55 and (self.matrix[int((i-1)/55)][(i-1)%55]):
+            R[i][i-1]=100
+            self.paint(((i-1)%55)*25,(int)((i-1)/55)*25,Qt.black)
+        if (i+1)<((int)(i/55)+1)*55 and (self.matrix[int((i+1)/55)][(i+1)%55]):
+            R[i][i+1]=100
+            self.paint(((i+1)%55)*25,(int)((i+1)/55)*25,Qt.black)
+        if (i-55)>=0 and (self.matrix[int((i-55)/55)][(i-55)%55]):
+            R[i][i-55]=100
+            self.paint(((i-55)%55)*25,(int)((i-55)/55)*25,Qt.black)
+
+        if (i+55)<33*55 and (self.matrix[int((i+55)/55)][(i+55)%55]):
+            R[i][i+55]=100
+            self.paint(((i+55)%55)*25,(int)((i+55)/55)*25,Qt.black)
+
+        R= np.mat(R)
+        print(type(R))
+
+
+
+        # Gamma (learning parameter).
+        gamma = 0.8
+
+        def available_actions(state):
+            current_state_row = R[state,]
+            av_act = np.where(current_state_row >= 0)[1]
+            return av_act
+        def sample_next_action(available_act):
+            next_action = int(np.random.choice(available_act,1))
+            return next_action
+
+        def update(current_state, action, gamma):
+            # if abs(current_state-action)!= 1 and abs(current_state-action)!= 55:
+            #   print("update-",current_state,action)
+            max_index = np.where(Q[action,] == np.max(Q[action,]))[1]
+
+            if max_index.shape[0] > 1:
+                max_index = int(np.random.choice(max_index, size = 1))
+            else:
+                max_index = int(max_index)
+            max_value = Q[action, max_index]
+
+            # Q learning formula
+            Q[current_state, action] = R[current_state, action] + gamma * max_value
+
+        load = True
+
+        if load:
+            pickle_in = open(f'{dest}.pkl','rb')
+            Q=pickle.load(pickle_in)
+
+        else:
+            Q = np.matrix(np.zeros([55*33,55*33]))
+
+
+        # Train over  150000 iterations. (Re-iterate the process above).
+        for i in range(50000):
+            self.currentnodeInput.setText(f"{i}")
+            current_state = np.random.randint(0, int(Q.shape[0]))
+
+            available_act = available_actions(current_state)
+            if len(available_act)==0:
+                continue
+            if current_state !=dest and current_state !=src:
+                self.paint((current_state%55)*25,(int)(current_state/55)*25,Qt.white)
+            action = sample_next_action(available_act)
+            update(current_state,action,gamma)
+
+        # Normalize the "trained" Q matrix
+        print("Trained Q matrix:")
+
+        print(src)
+        count=0
+        for i in range(33*55):
+            #print(i,np.max(Q[i,]))
+            if np.max(Q[i,])!=0.0:
+                count+=1
+        print(count)
+
+        current_state = src
+        steps = [current_state]
+
+        while current_state != dest:
+
+            next_step_index = np.where(Q[current_state,] == np.max(Q[current_state,]))[1]
+
+            if next_step_index.shape[0] > 1:
+                next_step_index = int(np.random.choice(next_step_index, size = 1))
+            else:
+                next_step_index = int(next_step_index)
+            #if np.max(Q[current_state,]) == 0:
+            #    print("No path")
+            #    break
+            #print((int)(next_step_index/55),next_step_index%55,Q[current_state, next_step_index])
+            if next_step_index !=dest and next_step_index !=src:
+                self.paint((next_step_index%55)*25,(int)(next_step_index/55)*25,Qt.darkCyan,0.01)
+            steps.append(next_step_index)
+            current_state = next_step_index
+
+        # Print selected sequence of steps
+        print("Selected path:")
+        print(steps)
+
+
+        f = open(f'{dest}.pkl','wb')
+        pickle.dump(Q,f)
+        f.close()
+
+    def a_star(self):
+
+        def h(p1, p2):
+            x1, y1 = p1/55,p1%55
+            x2, y2 = p2/55,p2%55
+            return abs(x1 - x2) + abs(y1 - y2)
+
+
+        R=[[0 for i in range(55*33)] for j in range(33*55)]
+
+        x_=int(self.endnode['y']/25)
+        y_=int(self.endnode['x']/25)
+        dest = x_*55+y_
+
+        x=int(self.startnode['y']/25)
+        y=int(self.startnode['x']/25)
+        src = x*55+y
+
+        for i in range(55*33):
+            if(self.matrix[int(i/55)][i%55]):
+                if i-1>=(int)(i/55)*55 and (self.matrix[int((i-1)/55)][(i-1)%55]):
+                    R[i][i-1]=1
+
+                if (i+1)<((int)(i/55)+1)*55 and (self.matrix[int((i+1)/55)][(i+1)%55]):
+                    R[i][i+1]=1
+
+                if (i-55)>=0 and (self.matrix[int((i-55)/55)][(i-55)%55]):
+                    R[i][i-55]=1
+
+                if (i+55)<33*55 and (self.matrix[int((i+55)/55)][(i+55)%55]):
+                    R[i][i+55]=1
+
+        count = 0
+        open_set = PriorityQueue()
+        open_set.put((0, count, src))
+        came_from = {}
+        g_score = {i: float("inf") for i in range(55*33)}
+        g_score[src] = 0
+        f_score = {i: float("inf") for i in range(55*33)}
+        f_score[src] = h(src,dest)
+
+        open_set_hash = {src}
+
+        while not open_set.empty():
+
+            current = open_set.get()[2]
+            open_set_hash.remove(current)
+
+            if current == dest:
+                while current in came_from:
+                    current = came_from[current]
+                    if current!=src:
+                        self.paint((current%55)*25,(int)(current/55)*25,Qt.darkCyan)
+                return
+
+            for neighbor in range(55*33):
+                if R[current][neighbor]:
+                    temp_g_score = g_score[current] + 1
+
+                    if temp_g_score < g_score[neighbor]:
+                        came_from[neighbor] = current
+                        g_score[neighbor] = temp_g_score
+                        f_score[neighbor] = temp_g_score + h(neighbor, dest)
+                        if neighbor not in open_set_hash:
+                            count += 1
+                            open_set.put((f_score[neighbor], count, neighbor))
+                            open_set_hash.add(neighbor)
+                            if neighbor!=dest:
+                                self.paint((neighbor%55)*25,(int)(neighbor/55)*25,Qt.cyan)
+
+
+
+        print("Path does not exists")
+        return False
+
 
 
 
