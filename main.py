@@ -73,17 +73,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
     def valuechange(self):
       self.delay = 1/self.speedInput.value()
 
-
-    def algorithm(self):
-        algo = self.algoInput.itemText(self.algoInput.currentIndex())
-        if algo == "Breadth First Search":
-            self.bfs()
-        elif algo == "Depth First Search":
-            self.dfs()
-        elif algo == "A* Algorithm":
-            self.a_star();
-
-
     def clearmaze(self):
         self.scene.clear()
         self.wtlst=[]
@@ -172,130 +161,151 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.graphicsView.viewport().installEventFilter(self)
 
 
+    def algorithm(self):
+        algo = self.algoInput.itemText(self.algoInput.currentIndex())
+        if algo == "Breadth First Search":
+            self.bfs()
+        elif algo == "Depth First Search":
+            self.dfs()
+        elif algo == "A* Algorithm":
+            self.a_star();
 
-    def dfs_util(self, src: Point, dest: Point,visited):
+    def dfs(self):
+        R=[[0 for i in range(55*33)] for j in range(33*55)]
 
-        visited = [[False for i in range(COL)] for j in range(ROW)]
+        x_=int(self.endnode['y']/25)
+        y_=int(self.endnode['x']/25)
+        dest = x_*55+y_
+
+        x=int(self.startnode['y']/25)
+        y=int(self.startnode['x']/25)
+        src = x*55+y
+
+        for i in range(55*33):
+            if(self.matrix[int(i/55)][i%55]):
+                if i-1>=(int)(i/55)*55 and (self.matrix[int((i-1)/55)][(i-1)%55]):
+                    R[i][i-1]=1
+
+                if (i+1)<((int)(i/55)+1)*55 and (self.matrix[int((i+1)/55)][(i+1)%55]):
+                    R[i][i+1]=1
+
+                if (i-55)>=0 and (self.matrix[int((i-55)/55)][(i-55)%55]):
+                    R[i][i-55]=1
+
+                if (i+55)<33*55 and (self.matrix[int((i+55)/55)][(i+55)%55]):
+                    R[i][i+55]=1
+
 
 
         stack = []
+        came_from = {}
+        visited = {src}
 
+        stack.append((src,0))
 
-        stack.append(src)
-        first = True
         while (len(stack)):
 
-            pt = stack[-1]
+            t = stack[-1]
+            current =t[0]
+            d = t[1]
             stack.pop()
 
-            if (not visited[pt.x][pt.y]):
 
-                visited[pt.x][pt.y] = True
 
-            if pt.x == dest.x and pt.y == dest.y:
-                return 1
+            if current!=src and current!=dest:
+                self.paint((current%55)*25,(int)(current/55)*25,Qt.blue)
+                self.paint((current%55)*25,(int)(current/55)*25,Qt.cyan)
 
-            if first == False:
-             self.paint(pt.y*25,pt.x*25,Qt.blue,0.001)
-             self.paint(pt.y*25,pt.x*25,Qt.cyan)
 
-            first=False
+            if current == dest:
+                print(f"Deepest path length={d}")
+                while current in came_from:
+                    current = came_from[current]
+                    if current!=src:
+                        self.paint((current%55)*25,(int)(current/55)*25,Qt.darkCyan)
+                return True
 
-            for i in range(4):
-                row = pt.x + rowNum[i]
-                col = pt.y + colNum[i]
-                if (isValid(row,col) and self.matrix[row][col] == 1 and not visited[row][col]):
-                    self.points[row][col].parent = pt
-                    stack.append(Point(row,col))
-        return -1
+            for neighbor in range(55*33):
+                if R[current][neighbor]:
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        came_from[neighbor]=current
+                        stack.append((neighbor,d+1))
 
-    def dfs(self):
-        x=int(self.startnode['y']/25)
-        y=int(self.startnode['x']/25)
+        print(f"Deepest path does not exist")
+        return False
+
+
+
+    def bfs(self):
+
+        R=[[0 for i in range(55*33)] for j in range(33*55)]
+
         x_=int(self.endnode['y']/25)
         y_=int(self.endnode['x']/25)
-        source = Point(x,y)
-        dest = Point(x_,y_)
-        visited = [[False for i in range(COL)] for j in range(ROW)]
-        dist = self.dfs_util(source,dest,visited)
+        dest = x_*55+y_
 
-        if dist!=-1:
-            print("Path exists")
-            t= self.points[x_][y_].parent
-            while t!=source:
-                self.paint(t.y*25,t.x*25,Qt.darkCyan)
-                t=self.points[t.x][t.y].parent
-        else:
-            print("Path doesn't exist")
+        x=int(self.startnode['y']/25)
+        y=int(self.startnode['x']/25)
+        src = x*55+y
 
+        for i in range(55*33):
+            if(self.matrix[int(i/55)][i%55]):
+                if i-1>=(int)(i/55)*55 and (self.matrix[int((i-1)/55)][(i-1)%55]):
+                    R[i][i-1]=1
 
-    def bfs_util(self, src: Point, dest: Point):
+                if (i+1)<((int)(i/55)+1)*55 and (self.matrix[int((i+1)/55)][(i+1)%55]):
+                    R[i][i+1]=1
 
+                if (i-55)>=0 and (self.matrix[int((i-55)/55)][(i-55)%55]):
+                    R[i][i-55]=1
 
-        if self.matrix[src.x][src.y]!=1 or self.matrix[dest.x][dest.y]!=1:
-            return -1
-
-        visited = [[False for i in range(COL)] for j in range(ROW)]
-
-
-        visited[src.x][src.y] = True
+                if (i+55)<33*55 and (self.matrix[int((i+55)/55)][(i+55)%55]):
+                    R[i][i+55]=1
 
 
         q = deque()
+        q.append((src,0))
+        came_from = {}
+        visited = {src}
 
 
-        s = queueNode(src,0)
-        q.append(s)
-        first = True
+
         while q:
 
-            curr = q.popleft()
-            pt = curr.pt
-            if pt.x == dest.x and pt.y == dest.y:
-                return curr.dist
-
-            if first == False:
-             self.paint(pt.y*25,pt.x*25,Qt.cyan)
-
-            first=False
-
-            for i in range(4):
-                row = pt.x + rowNum[i]
-                col = pt.y + colNum[i]
-                if (isValid(row,col) and self.matrix[row][col] == 1 and not visited[row][col]):
-                    visited[row][col] = True
-                    #print(row*55+col)
-                    self.points[row][col].parent = pt
-                    Adjcell = queueNode(Point(row,col,pt),curr.dist+1)
-                    if row == dest.x and col == dest.y:
-                       return curr.dist+1
-
-                    self.paint(col*25,row*25,Qt.blue)
-
-                    q.append(Adjcell)
+            t = q.popleft()
+            current =t[0]
+            d = t[1]
 
 
-        return -1
+            if current!=src and current!=dest:
+                self.paint((current%55)*25,(int)(current/55)*25,Qt.cyan)
 
-    def bfs(self):
-        x=int(self.startnode['y']/25)
-        y=int(self.startnode['x']/25)
-        x_=int(self.endnode['y']/25)
-        y_=int(self.endnode['x']/25)
-        source = Point(x,y)
-        dest = Point(x_,y_)
-
-        dist = self.bfs_util(source,dest)
+            if current == dest:
+                print(f"Shortest path length={d}")
+                while current in came_from:
+                    current = came_from[current]
+                    if current!=src:
+                        self.paint((current%55)*25,(int)(current/55)*25,Qt.darkCyan)
+                return True
 
 
-        if dist!=-1:
-            print("Shortest Path is",dist)
-            t= self.points[x_][y_].parent
-            while t!=source:
-                self.paint(t.y*25,t.x*25,Qt.darkCyan,0.1)
-                t=self.points[t.x][t.y].parent
-        else:
-            print("Shortest Path doesn't exist")
+            for neighbor in range(55*33):
+                if R[current][neighbor]:
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        came_from[neighbor]=current
+                        if neighbor!=dest:
+                            self.paint((neighbor%55)*25,(int)(neighbor/55)*25,Qt.blue)
+
+
+                        q.append((neighbor,d+1))
+
+
+
+        print("Shortest Path doesn't exist")
+        return False
+
 
     def q_point(self):
 
