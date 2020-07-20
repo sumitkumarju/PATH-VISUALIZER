@@ -168,7 +168,84 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         elif algo == "Depth First Search":
             self.dfs()
         elif algo == "A* Algorithm":
-            self.a_star();
+            self.a_star()
+        elif algo == "Dijkstra\'s Algorithm":
+            self.dijkstras()
+        elif algo == "Greedy Best First Search":
+            self.gbfs()
+
+    def dijkstras(self):
+
+        R=[[0 for i in range(55*33)] for j in range(33*55)]
+
+        x_=int(self.endnode['y']/25)
+        y_=int(self.endnode['x']/25)
+        dest = x_*55+y_
+
+        x=int(self.startnode['y']/25)
+        y=int(self.startnode['x']/25)
+        src = x*55+y
+
+        for i in range(55*33):
+            if(self.matrix[int(i/55)][i%55]):
+                if i-1>=(int)(i/55)*55 and (self.matrix[int((i-1)/55)][(i-1)%55]):
+                    R[i][i-1]=self.matrix[int((i-1)/55)][(i-1)%55]
+
+                if (i+1)<((int)(i/55)+1)*55 and (self.matrix[int((i+1)/55)][(i+1)%55]):
+                    R[i][i+1]=self.matrix[int((i+1)/55)][(i+1)%55]
+
+                if (i-55)>=0 and (self.matrix[int((i-55)/55)][(i-55)%55]):
+                    R[i][i-55]=self.matrix[int((i-55)/55)][(i-55)%55]
+
+                if (i+55)<33*55 and (self.matrix[int((i+55)/55)][(i+55)%55]):
+                    R[i][i+55]=self.matrix[int((i+55)/55)][(i+55)%55]
+
+
+        open_set = set()
+        open_set.add((0,src))
+        came_from = {}
+        dist = {i: float("inf") for i in range(55*33)}
+        dist[src] = 0
+        open_set_hash = {src}
+        while len(open_set):
+
+            current = open_set.pop()[1]
+            if current!=dest and current!=src:
+                self.paint((current%55)*25,(int)(current/55)*25,Qt.cyan,0.01)
+
+            print(dist[current])
+            open_set_hash.remove(current)
+
+            if current == dest:
+                brush = QBrush()
+                brush.setStyle(Qt.SolidPattern)
+                borderColor = Qt.black
+                brush.setColor(Qt.black)
+
+                for x,y in self.wtlst:
+                    self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
+
+                while current in came_from:
+                    current = came_from[current]
+                    if current!=src:
+                        self.paint((current%55)*25,(int)(current/55)*25,Qt.darkCyan)
+                return
+
+            for neighbor in range(55*33):
+                if R[current][neighbor]:
+                    temp_dist = dist[current] + R[current][neighbor]
+                    if temp_dist < dist[neighbor]:
+                        if neighbor  in open_set_hash:
+                            open_set.remove((dist[neighbor],neighbor))
+                            open_set_hash.remove(neighbor)
+                        dist[neighbor] = temp_dist
+                        came_from[neighbor] = current
+                        open_set.add((dist[neighbor],neighbor))
+                        open_set_hash.add(neighbor)
+
+
+        print("Path does not exists")
+        return False
 
     def dfs(self):
         R=[[0 for i in range(55*33)] for j in range(33*55)]
@@ -305,6 +382,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
         print("Shortest Path doesn't exist")
         return False
+
 
 
     def q_point(self):
@@ -449,6 +527,77 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         pickle.dump(Q,f)
         f.close()
 
+    def gbfs(self):
+        def h(p1, p2):
+            x1, y1 = p1/55,p1%55
+            x2, y2 = p2/55,p2%55
+            return abs(x1 - x2) + abs(y1 - y2)
+
+
+        R=[[0 for i in range(55*33)] for j in range(33*55)]
+
+        x_=int(self.endnode['y']/25)
+        y_=int(self.endnode['x']/25)
+        dest = x_*55+y_
+
+        x=int(self.startnode['y']/25)
+        y=int(self.startnode['x']/25)
+        src = x*55+y
+
+        for i in range(55*33):
+            if(self.matrix[int(i/55)][i%55]):
+                if i-1>=(int)(i/55)*55 and (self.matrix[int((i-1)/55)][(i-1)%55]):
+                    R[i][i-1]=1
+
+                if (i+1)<((int)(i/55)+1)*55 and (self.matrix[int((i+1)/55)][(i+1)%55]):
+                    R[i][i+1]=1
+
+                if (i-55)>=0 and (self.matrix[int((i-55)/55)][(i-55)%55]):
+                    R[i][i-55]=1
+
+                if (i+55)<33*55 and (self.matrix[int((i+55)/55)][(i+55)%55]):
+                    R[i][i+55]=1
+
+        count = 0
+        open_set = PriorityQueue()
+        open_set.put((0, count, src))
+        came_from = {}
+        f_score = {i: float("inf") for i in range(55*33)}
+        f_score[src] = h(src,dest)
+
+        open_set_hash = {src}
+
+        while not open_set.empty():
+
+            current = open_set.get()[2]
+            open_set_hash.remove(current)
+
+            if current == dest:
+
+                while current in came_from:
+                    current = came_from[current]
+                    if current!=src:
+                        self.paint((current%55)*25,(int)(current/55)*25,Qt.darkCyan)
+                return
+
+            for neighbor in range(55*33):
+                if R[current][neighbor]:
+                    if h(neighbor, dest) < f_score[neighbor]:
+                        h_score =  h(neighbor, dest)
+                        came_from[neighbor] = current
+                        f_score[neighbor] = h_score
+                        if neighbor not in open_set_hash:
+                            count += 1
+                            open_set.put((f_score[neighbor], count, neighbor))
+                            open_set_hash.add(neighbor)
+                            if neighbor!=dest :
+                                self.paint((neighbor%55)*25,(int)(neighbor/55)*25,Qt.cyan)
+
+
+
+        print("Path does not exists")
+        return False
+
     def a_star(self):
 
         def h(p1, p2):
@@ -498,6 +647,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
             open_set_hash.remove(current)
 
             if current == dest:
+
                 while current in came_from:
                     current = came_from[current]
                     if current!=src:
@@ -516,7 +666,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                             count += 1
                             open_set.put((f_score[neighbor], count, neighbor))
                             open_set_hash.add(neighbor)
-                            if neighbor!=dest:
+                            if neighbor!=dest :
                                 self.paint((neighbor%55)*25,(int)(neighbor/55)*25,Qt.cyan)
 
 
@@ -598,7 +748,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                     self.blklst.append((x,y))
                     self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
                 elif color == Qt.black:
-                    self.matrix[int(y/25)][int(x/25)]=2
+                    self.matrix[int(y/25)][int(x/25)]=10
                     self.wtlst.append((x,y))
                     self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
 
