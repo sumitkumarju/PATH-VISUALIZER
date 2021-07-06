@@ -46,6 +46,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
         self.createGraphicView()
+
         self.matrix= [ [1 for i in range(55)] for j in range(33)]
         self.points= [ [Point(j,i) for i in range(55)] for j in range(33)]
 
@@ -55,10 +56,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         self.efirst=True
         self.wtlst=[]
         self.blklst=[]
+
         self.clearb.pressed.connect(self.clearmaze)
         self.clearp.pressed.connect(self.clearpath)
         self.clearw.pressed.connect(self.clearweight)
         self.visualize.pressed.connect(self.algorithm)
+
         self.speedInput.setMinimum(1)
         self.speedInput.setMaximum(1000)
         self.speedInput.setValue(500)
@@ -147,6 +150,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
         self.scene.setBackgroundBrush(Qt.white)
 
+#       Drawing maze
         for x in range(0,1376,25):
             self.scene.addLine(x,0,x,825, QPen(Qt.black))
 
@@ -200,23 +204,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                 if (i+55)<33*55 and (self.matrix[int((i+55)/55)][(i+55)%55]):
                     R[i][i+55]=self.matrix[int((i+55)/55)][(i+55)%55]
 
-
-        open_set = set()
-        open_set.add((0,src))
+        open_set = []
+        open_set.append((0,src))
         came_from = {}
         dist = {i: float("inf") for i in range(55*33)}
         dist[src] = 0
         open_set_hash = {src}
         while len(open_set):
-
-            current = open_set.pop()[1]
+            open_set.sort(key = lambda x: x[0])
+            last = open_set.pop(0)
+            # print(last[0])
+            current = last[1]
             if current!=dest and current!=src:
                 self.paint((current%55)*25,(int)(current/55)*25,Qt.cyan,0.01)
 
-            print(dist[current])
+            # print(dist[current])
             open_set_hash.remove(current)
 
             if current == dest:
+                print(f"Dijkstras path length={last[0]}")
                 brush = QBrush()
                 brush.setStyle(Qt.SolidPattern)
                 borderColor = Qt.black
@@ -229,10 +235,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                     current = came_from[current]
                     if current!=src:
                         self.paint((current%55)*25,(int)(current/55)*25,Qt.darkCyan)
-                return
+                return True
 
             for neighbor in range(55*33):
-                if R[current][neighbor]:
+                if R[current][neighbor]>0:
                     temp_dist = dist[current] + R[current][neighbor]
                     if temp_dist < dist[neighbor]:
                         if neighbor  in open_set_hash:
@@ -240,7 +246,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                             open_set_hash.remove(neighbor)
                         dist[neighbor] = temp_dist
                         came_from[neighbor] = current
-                        open_set.add((dist[neighbor],neighbor))
+                        open_set.append((dist[neighbor],neighbor))
                         open_set_hash.add(neighbor)
 
 
@@ -248,6 +254,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
         return False
 
     def dfs(self):
+
         R=[[0 for i in range(55*33)] for j in range(33*55)]
 
         x_=int(self.endnode['y']/25)
@@ -271,8 +278,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
 
                 if (i+55)<33*55 and (self.matrix[int((i+55)/55)][(i+55)%55]):
                     R[i][i+55]=1
-
-
 
         stack = []
         came_from = {}
@@ -301,11 +306,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                     if current!=src:
                         self.paint((current%55)*25,(int)(current/55)*25,Qt.darkCyan)
                 return True
-
+            visited.add(current)
             for neighbor in range(55*33):
                 if R[current][neighbor]:
                     if neighbor not in visited:
-                        visited.add(neighbor)
                         came_from[neighbor]=current
                         stack.append((neighbor,d+1))
 
@@ -719,7 +723,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                  self.blklst.append((x,y))
                  self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
                 elif color == Qt.black:
-                 self.matrix[int(y/25)][int(x/25)]=2
+                 self.matrix[int(y/25)][int(x/25)]=10
                  self.wtlst.append((x,y))
                  self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
 
@@ -737,6 +741,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_Dialog):
                     self.startnode={'x':x,'y':y}
                     self.sfirst = False
                     self.scene.addRect(QRectF(x,y, 25, 25),borderColor,brush)
+                    self.matrix[int(y/25)][int(x/25)]=1
+                    # matrix not used
                 elif color == Qt.green and self.efirst == True:
                     self.endnode={'x':x,'y':y}
                     self.efirst = False
