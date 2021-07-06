@@ -6,9 +6,9 @@ A pyqt tool to visualize path finding algorithms.
 [![](https://github.com/sumitkumarju/PATH-VISUALIZER/blob/master/demo.PNG)]
 
 ## Installation 
- Clone the directory.Go to the terminal.
- 
- Type **python main.py** to run
+ * Clone the directory.Go to the terminal.
+ * Install Pyqt5 by **pip install pyqt5**
+ * Type **python main.py** to run
 
 ## Algorithms supported by the tool
 #### Uninformed search
